@@ -134,6 +134,10 @@ class Binary:
                 pink(f"delete '{self._path}' error: {e}")
                 pink(f"retrying in {timeout_ms}ms...")
                 time.sleep(timeout_ms / 1000)
+    
+    def __del__(self):
+        if self._process and self._process.poll() is None:
+            self._process.kill()
 
 class Config:
     def __init__(self, binaries_list: list[Binary], targets_list: list[Target], duration: int):
