@@ -51,7 +51,7 @@ class Binary:
         except Exception as e:
             pink(f"start error '{e}'")
 
-    def stop_and_delete(self):
+    def stop_and_delete(self) -> None:
         if self._process:
             blue(f"killing process with pid '{self._process.pid}'...")
             self._process.kill()
