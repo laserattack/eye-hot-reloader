@@ -1,3 +1,23 @@
+# SETTINGS START
+
+BINARIES_LIST = [
+    {
+        "BUILD_CMD": ["go", "build", "-o", "./bin1.exe", "bin1.go"],
+        "BINARY_PATH": "./bin1.exe"
+    },
+    {
+        "BUILD_CMD": ["go", "build", "-o", "./bin2.exe", "./1/bin2.go"],
+        "BINARY_PATH": "./bin2.exe"
+    },
+]
+
+TARGETS_LIST = [
+    "./target/target123", 
+    "./target/222.txt",
+]
+
+# SETTINGS END
+
 import signal
 import subprocess
 import time
@@ -177,14 +197,9 @@ class Watcher:
 
 if __name__ == "__main__":
     binaries_list = [
-        Binary(["go", "build", "-o", "./bin1.exe", "bin1.go"], Path("./bin1.exe")),
-        Binary(["go", "build", "-o", "./bin2.exe", "./1/bin2.go"], Path("./bin2.exe")),
+        Binary(binary["BUILD_CMD"], Path(binary["BINARY_PATH"]))
+        for binary in BINARIES_LIST
     ]
-
-    targets_list = [
-        Target("./target"),
-    ]
-
+    targets_list = [Target(target) for target in TARGETS_LIST]
     config = Config(binaries_list, targets_list)
-    watcher = Watcher(config)
-    watcher.main()
+    Watcher(config).main()
