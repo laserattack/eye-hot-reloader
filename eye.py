@@ -91,7 +91,12 @@ class Binary:
     def stop_and_delete(self) -> None:
         if self._process:
             blue(f"killing process with pid '{self._process.pid}'...")
-            self._process.kill()
+            try:
+                self._process.kill()
+                tcode = self._process.wait(timeout=5)
+                blue(f"process exited with code '{tcode:#X}'")
+            except Exception as e:
+                pink(f"process with pid '{self._process.pid}' termination error '{e}'")
             blue(f"process with pid '{self._process.pid}' is dead")
         
         max_attempts = 10
@@ -152,23 +157,29 @@ class Watcher:
         self.start_all()
 
     def main(self) -> None:
-        for target in self.config.targets:
-            last_mtime = mtime(target.path)
-            target.mtime = last_mtime
-        self.start_all()
-        while True:
+        try:
             for target in self.config.targets:
                 last_mtime = mtime(target.path)
-                if last_mtime > target.mtime:
-                    blue(f"target '{target.path}' was changed")
-                    blue("rebuilding...")
-                    self.restart_all()
-                    target.mtime = last_mtime
-            time.sleep(self.config.duration)
+                target.mtime = last_mtime
+            self.start_all()
+            while True:
+                for target in self.config.targets:
+                    last_mtime = mtime(target.path)
+                    if last_mtime > target.mtime:
+                        blue(f"target '{target.path}' was changed")
+                        blue("rebuilding...")
+                        self.restart_all()
+                        target.mtime = last_mtime
+                time.sleep(self.config.duration)
+        except Exception as e:
+            pink(f"fatal error in main loop '{e}'")
+            self.cleanup()
+            sys.exit(1)
 
 if __name__ == "__main__":
     binaries_list = [
         Binary(["go", "build", "-o", "./bin1.exe", "bin1.go"], Path("./bin1.exe")),
+        Binary(["go", "build", "-o", "./bin2.exe", "./1/bin2.go"], Path("./bin2.exe")),
     ]
 
     targets_list = [
