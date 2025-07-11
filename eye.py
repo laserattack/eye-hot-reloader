@@ -130,6 +130,7 @@ class Binary:
                 blue(f"file '{self._path}' deleted")
                 break
             except Exception as e:
+                if attempt == 9: sys.exit(1)
                 pink(f"delete '{self._path}' error: {e}")
                 pink(f"retrying in {timeout_ms}ms...")
                 time.sleep(timeout_ms / 1000)
