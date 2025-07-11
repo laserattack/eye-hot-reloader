@@ -159,8 +159,7 @@ class Watcher:
     def main(self) -> None:
         try:
             for target in self.config.targets:
-                last_mtime = mtime(target.path)
-                target.mtime = last_mtime
+                target.mtime = mtime(target.path)
             self.start_all()
             while True:
                 for target in self.config.targets:
