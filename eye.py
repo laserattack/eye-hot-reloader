@@ -16,6 +16,8 @@ TARGETS_LIST = [
     "./target/222.txt",
 ]
 
+DURATION = 1
+
 # SETTINGS END
 
 import signal
@@ -133,8 +135,8 @@ class Binary:
                 time.sleep(timeout_ms / 1000)
 
 class Config:
-    def __init__(self, binaries_list: list[Binary], targets_list: list[Target]):
-        self._duration = 1
+    def __init__(self, binaries_list: list[Binary], targets_list: list[Target], duration: int):
+        self._duration = duration
         self._binaries = binaries_list
         self._targets = targets_list
     
@@ -201,5 +203,5 @@ if __name__ == "__main__":
         for binary in BINARIES_LIST
     ]
     targets_list = [Target(target) for target in TARGETS_LIST]
-    config = Config(binaries_list, targets_list)
+    config = Config(binaries_list, targets_list, DURATION)
     Watcher(config).main()
