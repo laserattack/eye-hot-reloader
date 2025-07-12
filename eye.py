@@ -85,17 +85,11 @@ class Binary:
         self._path = Path(binary_path)
         self._build_cmd = build_cmd
         self._process = None
-    
-    @property
-    def path(self) -> Path: return self._path
-
-    @property
-    def build_cmd(self) -> list[str]: return self._build_cmd
 
     def build_and_run(self) -> None:
         blue(f"building '{self._path}'...")    
         try:
-            subprocess.run(self.build_cmd, check=True)
+            subprocess.run(self._build_cmd, check=True)
         except subprocess.CalledProcessError as e:
             pink(f"build '{self._path}' error '{e}'")
 
