@@ -124,10 +124,12 @@ class Binary:
                 blue(f"file '{self._path}' deleted")
                 break
             except Exception as e:
-                if attempt == 9: sys.exit(1)
-                pink(f"delete '{self._path}' error: {e}")
-                pink(f"retrying in {timeout_ms}ms...")
-                time.sleep(timeout_ms / 1000)
+                if attempt == 9: 
+                    pink(f"file '{self._path}' deletion error '{e}'")
+                else:
+                    pink(f"delete '{self._path}' error: {e}")
+                    pink(f"retrying in {timeout_ms}ms...")
+                    time.sleep(timeout_ms / 1000)
     
     def __del__(self):
         if self._process and self._process.poll() is None:
