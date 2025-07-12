@@ -93,33 +93,33 @@ class Binary:
     def build_cmd(self) -> list[str]: return self._build_cmd
 
     def build_and_run(self) -> None:
-        blue("building...")    
+        blue(f"building '{self._path}'...")    
         try:
             subprocess.run(self.build_cmd, check=True)
         except subprocess.CalledProcessError as e:
-            pink(f"build error '{e}'")
+            pink(f"build '{self._path}' error '{e}'")
 
         if not self._path.exists():
             pink(f"file '{self._path}' not found")
             return
         
-        blue("starting...")
+        blue(f"starting '{self._path}'...")
         try:
             self._process = subprocess.Popen([str(self._path)])
-            blue(f"process started with pid '{self._process.pid}'")
+            blue(f"process '{self._path}' started with pid '{self._process.pid}'")
         except Exception as e:
-            pink(f"start error '{e}'")
+            pink(f"start '{self._path}' error '{e}'")
 
     def stop_and_delete(self) -> None:
         if self._process:
-            blue(f"killing process with pid '{self._process.pid}'...")
+            blue(f"killing process '{self._path}' with pid '{self._process.pid}'...")
             try:
                 self._process.kill()
                 tcode = self._process.wait(timeout=5)
-                blue(f"process exited with code '{tcode:#X}'")
+                blue(f"process '{self._path}' exited with code '{tcode:#X}'")
             except Exception as e:
-                pink(f"process with pid '{self._process.pid}' termination error '{e}'")
-            blue(f"process with pid '{self._process.pid}' is dead")
+                pink(f"process '{self._path}' with pid '{self._process.pid}' termination error '{e}'")
+            blue(f"process '{self._path}' with pid '{self._process.pid}' is dead")
         
         max_attempts = 10
         timeout_ms = 300
