@@ -90,6 +90,7 @@ class Binary:
         blue(f"building '{self._path}'...")    
         try:
             subprocess.run(self._build_cmd, check=True)
+            blue(f"file '{self._path}' was built")
         except subprocess.CalledProcessError as e:
             pink(f"build '{self._path}' error '{e}'")
 
@@ -113,7 +114,6 @@ class Binary:
                 blue(f"process '{self._path}' exited with code '{tcode:#X}'")
             except Exception as e:
                 pink(f"process '{self._path}' with pid '{self._process.pid}' termination error '{e}'")
-            blue(f"process '{self._path}' with pid '{self._process.pid}' is dead")
         
         max_attempts = 10
         timeout_ms = 300
