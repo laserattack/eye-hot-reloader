@@ -6,8 +6,12 @@ Simple directories monitor with automatic rebuild and restart functionality for 
 
 - 🕵️‍♂️ **Universal Monitoring**: Tracks changes in directories or files
 - 🔧 **Configurable Builds**: Works with any build system (Make, npm, go, etc.)
-- 📦 **Dependencies**: Python
+- 📦 **Cross-platform**: Windows/Unix
 - 🎨 **Clean Output**: Color-coded messages with special prefix
+
+## Dependencies
+
+- Python
 
 ## Quick Start
 
