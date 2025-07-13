@@ -1,4 +1,4 @@
-# 👁️ Eye - Simple Hot-Reloader
+# 👁️ voyeur - Simple Hot-Reloader
 
 Simple directories monitor with automatic rebuild and restart functionality for any project type
 
