@@ -14,29 +14,27 @@ Simple directories monitor with automatic rebuild and restart functionality for 
 1. Place script in your project root
 2. Configure the script:
 ```py
+# SETTINGS START
+
 BINARIES_LIST = [
     {
-        # Your custom build command
-        "BUILD_CMD": ["go", "build", "-o", "./bin1.exe", "bin1.go"],
-        # Output path
+        "BUILD_CMD": ["go", "build", "-o", "./bin1.exe", "./bin1.go"],
         "BINARY_PATH": "./bin1.exe"
     },
     {
-        # Your custom build command
         "BUILD_CMD": ["go", "build", "-o", "./bin2.exe", "./1/bin2.go"],
-        # Output path
         "BINARY_PATH": "./bin2.exe"
     },
 ]
 
-# Directories/concrete files to watch
 TARGETS_LIST = [
     "./target/target123", 
     "./target/222.txt",
 ]
 
-# Delay between checks in seconds
 DURATION = 1
+
+# SETTINGS END
 ```
 3. Run it:
 `py eye.py`
