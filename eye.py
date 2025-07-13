@@ -144,7 +144,7 @@ class Binary:
                 pink(f"file '{self._path}' not found")
                 break
             except Exception as e:
-                if attempt == 9: 
+                if attempt == max_attempts - 1: 
                     pink(f"file '{self._path}' deletion error '{e}'")
                 else:
                     pink(f"delete '{self._path}' error: {e}")
