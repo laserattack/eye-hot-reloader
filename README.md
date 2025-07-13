@@ -46,3 +46,5 @@ DURATION = 1
 # SETTINGS END
 ```
 3. Run it using python interpreter
+
+## How does it work?
