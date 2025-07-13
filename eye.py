@@ -29,6 +29,9 @@ from pathlib import Path
 import sys
 
 def hide_control_chars() -> None:
+    # Если терминала нет - выход (например если скрипт запустился на сервере)
+    if not sys.stdin.isatty():
+        return
     if sys.platform != "win32":
         import termios
         fd = sys.stdin.fileno()
