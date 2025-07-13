@@ -70,7 +70,7 @@ def enable_windows_ansi() -> None:
         except Exception as e:
             # Создаётся новое исключение типа RuntimeError с описанием "Failed to enable ANSI colors"
             # Это заменяет оригинальное низкоуровневое исключение (например, из ctypes) на более понятное
-            raise RuntimeError("Failed to enable ANSI colors") from e
+            raise RuntimeError("failed to enable ANSI colors") from e
 
 def blue(message: str) -> None:
     color_print(message, "\033[1;34m")
@@ -121,6 +121,7 @@ def create_executable(exec_config: dict) -> Executable:
         return Binary(exec_config["BUILD_CMD"], Path(exec_config["BINARY_PATH"]))
     elif "RUN_CMD" in exec_config and "SCRIPT_PATH" in exec_config:
         return Script(exec_config["RUN_CMD"], Path(exec_config["SCRIPT_PATH"]))
+    raise ValueError("incorrect configuration of the 'EXECUTABLES_LIST', check fields names")
 
 class Script(Executable):
     def __init__(self, start_cmd: list[str], script_path: str):
@@ -294,11 +295,17 @@ class Watcher:
 
 if __name__ == "__main__":
     try:
-        executables_list = [create_executable(exec) for exec in EXECUTABLES_LIST]
+        try: 
+            executables_list = [create_executable(exec) for exec in EXECUTABLES_LIST]
+        except ValueError as e: 
+            pink(f"configuration error '{e}'")
+            sys.exit(1)
+            
         targets_list = [Target(target) for target in TARGETS_LIST]
         if missing := [t.path for t in targets_list if not t.path.exists()]:
             pink(f"non-existent targets: {', '.join(map(str, missing))}")
             sys.exit(1)
+        
         config = Config(executables_list, targets_list, DURATION)
         Watcher(config).main()
     finally:
