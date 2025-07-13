@@ -36,5 +36,4 @@ DURATION = 1
 
 # SETTINGS END
 ```
-3. Run it:
-`py eye.py`
+3. Run it using python
