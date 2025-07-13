@@ -32,18 +32,30 @@ def hide_control_chars() -> None:
     if sys.platform != "win32":
         import termios
         fd = sys.stdin.fileno()
+        # termios.tcgetattr(fd) считывает текущие атрибуты терминала в attrs
         attrs = termios.tcgetattr(fd)
+        # attrs[3] соответствует локальным флагам (c_lflag в структуре termios)
+        # ECHOCTL — это флаг, который управляет отображением управляющих символов (например, ^C для Ctrl+C).
+        # ~termios.ECHOCTL инвертирует битовую маску, а &= применяет побитовое И, чтобы сбросить этот флаг
         attrs[3] &= ~termios.ECHOCTL
         termios.tcsetattr(fd, termios.TCSANOW, attrs)
 
 def enable_windows_ansi() -> None:
     if sys.platform == "win32":
         try:
+            # ctypes позволяет вызывать функции из динамических библиотек (DLL) Windows
             import ctypes
             kernel32 = ctypes.windll.kernel32
+            # Получение дескриптора стандартного вывода
             hStdOut = kernel32.GetStdHandle(-11)
+            # mode = ctypes.c_ulong() — создаёт переменную типа unsigned long, куда запишется текущий режим консоли
             mode = ctypes.c_ulong()
+            # ctypes.byref(mode) передаёт указатель на mode
             kernel32.GetConsoleMode(hStdOut, ctypes.byref(mode))
+            # 0x0004 — это константа ENABLE_VIRTUAL_TERMINAL_PROCESSING, которая включает:
+            ## Обработку ANSI-последовательностей (\033[...m)
+            ## Поддержку цветов, стилей (жирный, курсив), перемещения курсора и т. д.
+            # |= — побитовое ИЛИ, добавляет флаг к текущему режиму
             mode.value |= 0x0004
             kernel32.SetConsoleMode(hStdOut, mode)
         except Exception as e:
