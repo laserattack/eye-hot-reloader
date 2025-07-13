@@ -28,6 +28,14 @@ from types import FrameType
 from pathlib import Path
 import sys
 
+def hide_control_chars() -> None:
+    if sys.platform != "win32":
+        import termios
+        fd = sys.stdin.fileno()
+        attrs = termios.tcgetattr(fd)
+        attrs[3] &= ~termios.ECHOCTL
+        termios.tcsetattr(fd, termios.TCSANOW, attrs)
+
 def enable_windows_ansi() -> None:
     if sys.platform == "win32":
         try:
@@ -86,24 +94,33 @@ class Binary:
         self._build_cmd = build_cmd
         self._process = None
 
-    def build_and_run(self) -> None:
+    @property
+    def path(self) -> Path: return self._path
+
+    def build_and_run(self) -> bool:
         blue(f"building '{self._path}'...")    
         try:
             subprocess.run(self._build_cmd, check=True)
             blue(f"file '{self._path}' was built")
         except subprocess.CalledProcessError as e:
             pink(f"build '{self._path}' error '{e}'")
+            return False
 
         if not self._path.exists():
             pink(f"file '{self._path}' not found")
-            return
+            return False
         
         blue(f"starting '{self._path}'...")
         try:
             self._process = subprocess.Popen([str(self._path)])
             blue(f"process '{self._path}' started with pid '{self._process.pid}'")
+            return True
+        except FileNotFoundError:
+            pink(f"file '{self._path}' not found")
+            return False
         except Exception as e:
             pink(f"start '{self._path}' error '{e}'")
+            return False
 
     def stop_and_delete(self) -> None:
         if self._process:
@@ -122,6 +139,9 @@ class Binary:
                 blue(f"deleting file '{self._path}' (attempt {attempt + 1}/{max_attempts})...")
                 self._path.unlink()
                 blue(f"file '{self._path}' deleted")
+                break
+            except FileNotFoundError:
+                pink(f"file '{self._path}' not found")
                 break
             except Exception as e:
                 if attempt == 9: 
@@ -154,6 +174,7 @@ class Watcher:
     def __init__(self, config: Config):
         self.config = config
 
+        hide_control_chars()
         signal.signal(signal.SIGINT, self.handle_signal)
         signal.signal(signal.SIGTERM, self.handle_signal)
         
@@ -164,12 +185,12 @@ class Watcher:
     def cleanup(self) -> None:
         blue("cleanup...")
         self.stop_all()
-        blue("see you later!")
         sys.exit(0)
 
     def start_all(self) -> None:
         for b in self.config.binaries:
-            b.build_and_run()
+            if not b.build_and_run():
+                self.cleanup()
 
     def stop_all(self) -> None:
         for b in self.config.binaries:
@@ -178,7 +199,7 @@ class Watcher:
     def restart_all(self) -> None:
         self.stop_all()
         self.start_all()
-
+    
     def main(self) -> None:
         try:
             for target in self.config.targets:
@@ -194,15 +215,20 @@ class Watcher:
                         target.mtime = last_mtime
                 time.sleep(self.config.duration)
         except Exception as e:
-            pink(f"fatal error in main loop '{e}'")
+            pink(f"fatal error in main '{e}'")
             self.cleanup()
-            sys.exit(1)
 
 if __name__ == "__main__":
-    binaries_list = [
-        Binary(binary["BUILD_CMD"], Path(binary["BINARY_PATH"]))
-        for binary in BINARIES_LIST
-    ]
-    targets_list = [Target(target) for target in TARGETS_LIST]
-    config = Config(binaries_list, targets_list, DURATION)
-    Watcher(config).main()
+    try:
+        binaries_list = [
+            Binary(binary["BUILD_CMD"], Path(binary["BINARY_PATH"]))
+            for binary in BINARIES_LIST
+        ]
+        targets_list = [Target(target) for target in TARGETS_LIST]
+        if missing := [b.path for b in targets_list if not b.path.exists()]:
+            pink(f"non-existent targets: {', '.join(map(str, missing))}")
+            sys.exit(1)
+        config = Config(binaries_list, targets_list, DURATION)
+        Watcher(config).main()
+    finally:
+        blue("see you later!")
