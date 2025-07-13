@@ -205,21 +205,18 @@ class Watcher:
 
     def cleanup(self) -> None:
         blue("party ends... cleanup...")
-        blue()
         self.stop_all()
         sys.exit(0)
 
     def start_all(self) -> None:
         for e in self.config.executables:
             status = e.start()
-            blue()
             if not status:
                 self.cleanup()
 
     def stop_all(self) -> None:
         for e in self.config.executables:
             e.stop()
-            blue()
 
     def restart_all(self) -> None:
         self.stop_all()
@@ -246,7 +243,6 @@ class Watcher:
 def main():
     try:
         blue("party begins! pouring cocktails...")
-        blue()
         try: 
             executables_list = [create_executable(exec) for exec in EXECUTABLES_LIST]
         except ValueError as e: 
