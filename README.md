@@ -31,14 +31,14 @@ EXECUTABLES_LIST = [
         "BINARY_PATH": "./bin2.exe"
     },
     {
-        "RUN_CMD": ["py", "./target2/target.py"],
-        "SCRIPT_PATH": "./target2/target.py"
-    }
+        "CMD": ["py", "./target2/target.py"],
+    },
 ]
 
 TARGETS_LIST = [
     "./target/target123", 
     "./target/222.txt",
+    "./target2/target.py",
 ]
 
 DURATION = 1

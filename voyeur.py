@@ -10,7 +10,7 @@ EXECUTABLES_LIST = [
         "BINARY_PATH": "./bin2.exe"
     },
     {
-        "CMD": ["py", "./target2/taget.py"],
+        "CMD": ["py", "./target2/target.py"],
     },
 ]
 
@@ -79,6 +79,10 @@ class Command(Executable):
         
     def stop(self) -> None:
         if self._process:
+            if self._process.poll() is not None:
+                blue(f"process '{' '.join(self._run_cmd)}' already dead")
+                return
+
             blue(f"killing process '{' '.join(self._run_cmd)}' with pid '{self._process.pid}'...")
             try:
                 self._process.kill()
@@ -104,7 +108,10 @@ class Binary(Executable):
         return self._run_process()
 
     def stop(self) -> None:
-        self._terminate_process()
+        if self._process and self._process.poll() is not None:
+            blue(f"process '{self._path}' already dead")
+        else:
+            self._terminate_process()
         self._delete_file()
 
     def _build(self) -> bool:
