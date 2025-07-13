@@ -5,7 +5,7 @@ Simple directories monitor with automatic rebuild and restart functionality for 
 ## What is it
 
 - 🕵️‍♂️ **Universal Monitoring**: Tracks changes in directories or files
-- 🔧 **Configurable Builds**: Works with any build system (Make, npm, go, etc.)
+- 🔧 **Configurable Builds**: Works with any build system (Make, go, etc.)
 - 📦 **Cross-platform**: Windows/Unix
 - 🙂 **Simplicity**: Only 1 file
 - 🎨 **Clean Output**: Color-coded messages with special prefix
