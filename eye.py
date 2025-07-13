@@ -18,6 +18,7 @@ EXECUTABLES_LIST = [
 TARGETS_LIST = [
     "./target/target123", 
     "./target/222.txt",
+    "./target2/target.py",
 ]
 
 DURATION = 1
@@ -128,16 +129,16 @@ class Script(Executable):
         self._process = None
     
     def start(self) -> bool:        
+        if not self._path.exists():
+            pink(f"file '{self._path}' not found")
+            return False
         blue(f"starting '{self._path}'...")
         try:
             self._process = subprocess.Popen(self._start_cmd)
             blue(f"process '{self._path}' started with pid {self._process.pid}")
             return True
-        except FileNotFoundError:
-            pink(f"file '{self._path}' not found")
-            return False
         except Exception as e:
-            pink(f"file '{self._path}' error: {e}")
+            pink(f"file '{self._path}' error '{e}'")
             return False
         
     def stop(self) -> None:
@@ -148,7 +149,7 @@ class Script(Executable):
                 tcode = self._process.wait(timeout=5)
                 blue(f"process '{self._path}' stopped with code {tcode:#X}")
             except Exception as e:
-                pink(f"process termination error: {e}")
+                pink(f"process termination error '{e}'")
 
     def __del__(self):
         if self._process and self._process.poll() is None:
@@ -174,7 +175,7 @@ class Binary(Executable):
             subprocess.run(self._build_cmd, check=True)
             blue(f"file '{self._path}' was built")
         except subprocess.CalledProcessError as e:
-            pink(f"build '{self._path}' error: {e}")
+            pink(f"build '{self._path}' error '{e}'")
             return False
 
         if not self._path.exists():
@@ -191,7 +192,7 @@ class Binary(Executable):
             pink(f"file '{self._path}' not found")
             return False
         except Exception as e:
-            pink(f"start '{self._path}' error: {e}")
+            pink(f"start '{self._path}' error '{e}'")
             return False
 
     def _terminate_process(self) -> None:
@@ -202,7 +203,7 @@ class Binary(Executable):
                 tcode = self._process.wait(timeout=5)
                 blue(f"process '{self._path}' exited with code {tcode:#X}")
             except Exception as e:
-                pink(f"process termination error: {e}")
+                pink(f"process termination error '{e}'")
 
     def _delete_file(self) -> None:
         max_attempts = 10
@@ -218,9 +219,9 @@ class Binary(Executable):
                 break
             except Exception as e:
                 if attempt == max_attempts - 1: 
-                    pink(f"file deletion error: {e}")
+                    pink(f"file deletion error '{e}'")
                 else:
-                    pink(f"delete error: {e}")
+                    pink(f"delete error '{e}'")
                     pink(f"retrying in {timeout_ms}ms...")
                     time.sleep(timeout_ms / 1000)
     
@@ -261,13 +262,13 @@ class Watcher:
         sys.exit(0)
 
     def start_all(self) -> None:
-        for b in self.config.executables:
-            if not b.start():
+        for e in self.config.executables:
+            if not e.start():
                 self.cleanup()
 
     def stop_all(self) -> None:
-        for b in self.config.executables:
-            b.stop()
+        for e in self.config.executables:
+            e.stop()
 
     def restart_all(self) -> None:
         self.stop_all()
