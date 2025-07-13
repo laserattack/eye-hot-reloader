@@ -10,8 +10,7 @@ EXECUTABLES_LIST = [
         "BINARY_PATH": "./bin2.exe"
     },
     {
-        "RUN_CMD": ["py", "./target2/target.py"],
-        "SCRIPT_PATH": "./target2/target.py"
+        "CMD": ["py", "./target2/taget.py"],
     },
 ]
 
@@ -59,27 +58,23 @@ class Executable(ABC):
 def create_executable(exec_config: dict) -> Executable:
     if "BUILD_CMD" in exec_config and "BINARY_PATH" in exec_config:
         return Binary(exec_config["BUILD_CMD"], Path(exec_config["BINARY_PATH"]))
-    elif "RUN_CMD" in exec_config and "SCRIPT_PATH" in exec_config:
-        return Script(exec_config["RUN_CMD"], Path(exec_config["SCRIPT_PATH"]))
+    elif "CMD" in exec_config:
+        return Command(exec_config["CMD"])
     raise ValueError("incorrect configuration of the 'EXECUTABLES_LIST', check fields names")
 
-class Script(Executable):
-    def __init__(self, run_cmd: list[str], script_path: str):
-        self._path = Path(script_path)
+class Command(Executable):
+    def __init__(self, run_cmd: list[str]):
         self._run_cmd = run_cmd
         self._process = None
     
     def start(self) -> bool:        
-        if not self._path.exists():
-            pink(f"file '{self._path}' not found")
-            return False
         blue(f"running command '{' '.join(self._run_cmd)}'...")
         try:
             self._process = subprocess.Popen(self._run_cmd)
-            blue(f"run command process started with pid '{self._process.pid}'")
+            blue(f"command process started with pid '{self._process.pid}'")
             return True
         except Exception as e:
-            pink(f"run command error '{e}'")
+            pink(f"command error '{e}'")
             return False
         
     def stop(self) -> None:
@@ -202,7 +197,8 @@ class Watcher:
         self.cleanup()
 
     def cleanup(self) -> None:
-        blue("cleanup...")
+        blue("party ends... cleanup...")
+        blue()
         self.stop_all()
         sys.exit(0)
 
@@ -242,6 +238,8 @@ class Watcher:
 
 def main():
     try:
+        blue("party begins! pouring cocktails...")
+        blue()
         try: 
             executables_list = [create_executable(exec) for exec in EXECUTABLES_LIST]
         except ValueError as e: 
