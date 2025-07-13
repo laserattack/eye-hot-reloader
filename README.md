@@ -21,15 +21,19 @@ Simple directories monitor with automatic rebuild and restart functionality for 
 ```py
 # SETTINGS START
 
-BINARIES_LIST = [
+EXECUTABLES_LIST = [
     {
         "BUILD_CMD": ["go", "build", "-o", "./bin1.exe", "./bin1.go"],
         "BINARY_PATH": "./bin1.exe"
     },
     {
-        "BUILD_CMD": ["go", "build", "-o", "./bin2.exe", "./1/bin2.go"],
+        "BUILD_CMD": ["go", "build", "-o", "./bin2.exe", "./target2/bin2.go"],
         "BINARY_PATH": "./bin2.exe"
     },
+    {
+        "RUN_CMD": ["py", "./target2/target.py"],
+        "SCRIPT_PATH": "./target2/target.py"
+    }
 ]
 
 TARGETS_LIST = [
