@@ -94,9 +94,6 @@ class Binary:
         self._build_cmd = build_cmd
         self._process = None
 
-    @property
-    def path(self) -> Path: return self._path
-
     def build_and_run(self) -> bool:
         blue(f"building '{self._path}'...")    
         try:
@@ -225,7 +222,7 @@ if __name__ == "__main__":
             for binary in BINARIES_LIST
         ]
         targets_list = [Target(target) for target in TARGETS_LIST]
-        if missing := [b.path for b in targets_list if not b.path.exists()]:
+        if missing := [t.path for t in targets_list if not t.path.exists()]:
             pink(f"non-existent targets: {', '.join(map(str, missing))}")
             sys.exit(1)
         config = Config(binaries_list, targets_list, DURATION)
