@@ -1,14 +1,18 @@
 # SETTINGS START
 
-BINARIES_LIST = [
+EXECUTABLES_LIST = [
     {
         "BUILD_CMD": ["go", "build", "-o", "./bin1.exe", "./bin1.go"],
         "BINARY_PATH": "./bin1.exe"
     },
     {
-        "BUILD_CMD": ["go", "build", "-o", "./bin2.exe", "./1/bin2.go"],
+        "BUILD_CMD": ["go", "build", "-o", "./bin2.exe", "./target2/bin2.go"],
         "BINARY_PATH": "./bin2.exe"
     },
+    {
+        "RUN_CMD": ["py", "./target2/target.py"],
+        "SCRIPT_PATH": "./target2/target.py"
+    }
 ]
 
 TARGETS_LIST = [
@@ -20,6 +24,7 @@ DURATION = 1
 
 # SETTINGS END
 
+from abc import ABC, abstractmethod
 import signal
 import subprocess
 import time
@@ -103,47 +108,103 @@ class Target:
     def mtime(self, timestamp: float) -> None:
         self._mtime = timestamp
 
-class Binary:
-    def __init__(self, build_cmd: list[str], binary_path: str):
-        self._path = Path(binary_path)
-        self._build_cmd = build_cmd
+class Executable(ABC):
+    @abstractmethod
+    def start(self) -> bool: pass
+    
+    @abstractmethod
+    def stop(self) -> None: pass
+
+def create_executable(exec_config: dict) -> Executable:
+    if "BUILD_CMD" in exec_config and "BINARY_PATH" in exec_config:
+        return Binary(exec_config["BUILD_CMD"], Path(exec_config["BINARY_PATH"]))
+    elif "RUN_CMD" in exec_config and "SCRIPT_PATH" in exec_config:
+        return Script(exec_config["RUN_CMD"], Path(exec_config["SCRIPT_PATH"]))
+
+class Script(Executable):
+    def __init__(self, start_cmd: list[str], script_path: str):
+        self._path = Path(script_path)
+        self._start_cmd = start_cmd
         self._process = None
-
-    def build_and_run(self) -> bool:
-        blue(f"building '{self._path}'...")    
-        try:
-            subprocess.run(self._build_cmd, check=True)
-            blue(f"file '{self._path}' was built")
-        except subprocess.CalledProcessError as e:
-            pink(f"build '{self._path}' error '{e}'")
-            return False
-
-        if not self._path.exists():
-            pink(f"file '{self._path}' not found")
-            return False
-        
+    
+    def start(self) -> bool:        
         blue(f"starting '{self._path}'...")
         try:
-            self._process = subprocess.Popen([self._path.absolute()])
-            blue(f"process '{self._path}' started with pid '{self._process.pid}'")
+            self._process = subprocess.Popen(self._start_cmd)
+            blue(f"process '{self._path}' started with pid {self._process.pid}")
             return True
         except FileNotFoundError:
             pink(f"file '{self._path}' not found")
             return False
         except Exception as e:
-            pink(f"start '{self._path}' error '{e}'")
+            pink(f"file '{self._path}' error: {e}")
             return False
-
-    def stop_and_delete(self) -> None:
+        
+    def stop(self) -> None:
         if self._process:
-            blue(f"killing process '{self._path}' with pid '{self._process.pid}'...")
+            blue(f"killing process '{self._path}' with pid {self._process.pid}...")
             try:
                 self._process.kill()
                 tcode = self._process.wait(timeout=5)
-                blue(f"process '{self._path}' exited with code '{tcode:#X}'")
+                blue(f"process '{self._path}' stopped with code {tcode:#X}")
             except Exception as e:
-                pink(f"process '{self._path}' with pid '{self._process.pid}' termination error '{e}'")
-        
+                pink(f"process termination error: {e}")
+
+    def __del__(self):
+        if self._process and self._process.poll() is None:
+            self._process.kill()
+
+class Binary(Executable):
+    def __init__(self, build_cmd: list[str], binary_path: str):
+        self._path = Path(binary_path)
+        self._build_cmd = build_cmd
+        self._process = None
+
+    def start(self) -> bool:
+        self._build()
+        return self._run_process()
+
+    def stop(self) -> None:
+        self._terminate_process()
+        self._delete_file()
+
+    def _build(self) -> None:
+        blue(f"building '{self._path}'...")    
+        try:
+            subprocess.run(self._build_cmd, check=True)
+            blue(f"file '{self._path}' was built")
+        except subprocess.CalledProcessError as e:
+            pink(f"build '{self._path}' error: {e}")
+            return False
+
+        if not self._path.exists():
+            pink(f"file '{self._path}' not found")
+            return False
+
+    def _run_process(self) -> bool:
+        blue(f"starting '{self._path}'...")
+        try:
+            self._process = subprocess.Popen([self._path.absolute()])
+            blue(f"process '{self._path}' started with pid {self._process.pid}")
+            return True
+        except FileNotFoundError:
+            pink(f"file '{self._path}' not found")
+            return False
+        except Exception as e:
+            pink(f"start '{self._path}' error: {e}")
+            return False
+
+    def _terminate_process(self) -> None:
+        if self._process:
+            blue(f"killing process '{self._path}' with pid {self._process.pid}...")
+            try:
+                self._process.kill()
+                tcode = self._process.wait(timeout=5)
+                blue(f"process '{self._path}' exited with code {tcode:#X}")
+            except Exception as e:
+                pink(f"process termination error: {e}")
+
+    def _delete_file(self) -> None:
         max_attempts = 10
         timeout_ms = 300
         for attempt in range(max_attempts):
@@ -157,9 +218,9 @@ class Binary:
                 break
             except Exception as e:
                 if attempt == max_attempts - 1: 
-                    pink(f"file '{self._path}' deletion error '{e}'")
+                    pink(f"file deletion error: {e}")
                 else:
-                    pink(f"delete '{self._path}' error: {e}")
+                    pink(f"delete error: {e}")
                     pink(f"retrying in {timeout_ms}ms...")
                     time.sleep(timeout_ms / 1000)
     
@@ -168,16 +229,16 @@ class Binary:
             self._process.kill()
 
 class Config:
-    def __init__(self, binaries_list: list[Binary], targets_list: list[Target], duration: int):
+    def __init__(self, executables_list: list[Executable], targets_list: list[Target], duration: int):
         self._duration = duration
-        self._binaries = binaries_list
+        self._executables = executables_list
         self._targets = targets_list
     
     @property
     def duration(self) -> int: return self._duration
 
     @property
-    def binaries(self) -> list[Binary]: return self._binaries
+    def executables(self) -> list[Executable]: return self._executables
 
     @property
     def targets(self) -> list[Target]: return self._targets
@@ -200,13 +261,13 @@ class Watcher:
         sys.exit(0)
 
     def start_all(self) -> None:
-        for b in self.config.binaries:
-            if not b.build_and_run():
+        for b in self.config.executables:
+            if not b.start():
                 self.cleanup()
 
     def stop_all(self) -> None:
-        for b in self.config.binaries:
-            b.stop_and_delete()
+        for b in self.config.executables:
+            b.stop()
 
     def restart_all(self) -> None:
         self.stop_all()
@@ -222,7 +283,7 @@ class Watcher:
                     last_mtime = mtime(target.path)
                     if last_mtime > target.mtime:
                         blue(f"target '{target.path}' was changed")
-                        blue("rebuilding...")
+                        blue("restarting...")
                         self.restart_all()
                         target.mtime = last_mtime
                 time.sleep(self.config.duration)
@@ -232,15 +293,12 @@ class Watcher:
 
 if __name__ == "__main__":
     try:
-        binaries_list = [
-            Binary(binary["BUILD_CMD"], Path(binary["BINARY_PATH"]))
-            for binary in BINARIES_LIST
-        ]
+        executables_list = [create_executable(exec) for exec in EXECUTABLES_LIST]
         targets_list = [Target(target) for target in TARGETS_LIST]
         if missing := [t.path for t in targets_list if not t.path.exists()]:
             pink(f"non-existent targets: {', '.join(map(str, missing))}")
             sys.exit(1)
-        config = Config(binaries_list, targets_list, DURATION)
+        config = Config(executables_list, targets_list, DURATION)
         Watcher(config).main()
     finally:
         blue("see you later!")
