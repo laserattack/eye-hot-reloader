@@ -1,4 +1,4 @@
-# 👁️ Eye - Pure Python Hot-Reloader
+# 👁️ Eye - Simple Hot-Reloader
 
 Simple directories monitor with automatic rebuild and restart functionality for any project type
 
