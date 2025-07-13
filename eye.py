@@ -2,7 +2,7 @@
 
 BINARIES_LIST = [
     {
-        "BUILD_CMD": ["go", "build", "-o", "./bin1.exe", "bin1.go"],
+        "BUILD_CMD": ["go", "build", "-o", "./bin1.exe", "./bin1.go"],
         "BINARY_PATH": "./bin1.exe"
     },
     {
@@ -112,7 +112,7 @@ class Binary:
         
         blue(f"starting '{self._path}'...")
         try:
-            self._process = subprocess.Popen([str(self._path)])
+            self._process = subprocess.Popen([self._path.absolute()])
             blue(f"process '{self._path}' started with pid '{self._process.pid}'")
             return True
         except FileNotFoundError:
