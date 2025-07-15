@@ -48,3 +48,30 @@ DURATION = 1
 3. Run it using python interpreter
 
 ## How does it work?
+
+For Binary Builds:
+
+```python
+{
+    "BUILD_CMD": ["go", "build", "-o", "./bin.exe", "main.go"],
+    "BINARY_PATH": "./bin.exe"
+}
+```
+
+- Runs `BUILD_CMD` when changes detected
+- Launches the built binary
+- On restart:
+- - Kills the process (with PID tracking)
+- - Deletes the binary (with 10 retry attempts)
+- - Repeats build + launch cycle
+
+For Direct Commands:
+
+```python
+{
+    "CMD": ["python", "script.py"]
+}
+```
+
+- Starts the command as a subprocess
+- Gracefully kills it on restart
