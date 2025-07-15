@@ -61,7 +61,7 @@ DURATION = 1
 - Runs `BUILD_CMD` when changes detected
 - Launches the built binary
 - On restart:
-    - Kills the process (with PID tracking)
+    - Kills the process (if running)
     - Deletes the binary (with 10 retry attempts)
     - Repeats build + launch cycle
 
