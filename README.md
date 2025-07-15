@@ -61,9 +61,9 @@ For Binary Builds:
 - Runs `BUILD_CMD` when changes detected
 - Launches the built binary
 - On restart:
-- - Kills the process (with PID tracking)
-- - Deletes the binary (with 10 retry attempts)
-- - Repeats build + launch cycle
+    - Kills the process (with PID tracking)
+    - Deletes the binary (with 10 retry attempts)
+    - Repeats build + launch cycle
 
 For Direct Commands:
 
@@ -74,4 +74,4 @@ For Direct Commands:
 ```
 
 - Starts the command as a subprocess
-- Gracefully kills it on restart
+- Gracefully kills it on restart (if running)
