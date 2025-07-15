@@ -49,7 +49,7 @@ DURATION = 1
 
 ## How does it work?
 
-For Binary Builds:
+**For Binary Builds**:
 
 ```python
 {
@@ -65,7 +65,7 @@ For Binary Builds:
     - Deletes the binary (with 10 retry attempts)
     - Repeats build + launch cycle
 
-For Direct Commands:
+**For Direct Commands**:
 
 ```python
 {
